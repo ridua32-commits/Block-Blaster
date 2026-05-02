@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Target,
   ArrowLeft,
-  Lock
+  Lock,
+  Wifi
 } from 'lucide-react';
 
 export default function App() {
@@ -70,6 +71,11 @@ export default function App() {
               <div className="glass w-full py-4 rounded-2xl flex items-center justify-center gap-3 border-white/10 opacity-80">
                 <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-[10px] text-slate-900 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)]">C</div>
                 <span className="font-bold text-lg">{state?.coins || 100}</span>
+              </div>
+
+              <div className="flex items-center justify-center gap-1.5 text-white/40 text-[9px] font-bold uppercase tracking-widest">
+                <Wifi size={10} className="text-emerald-400" />
+                <span>Offline Ready</span>
               </div>
             </div>
           </motion.div>
