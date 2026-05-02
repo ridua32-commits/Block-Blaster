@@ -55,9 +55,11 @@ export function useGameLogic() {
     
     const generateInitialGrid = () => {
       let newGrid: (Block | null)[][] = [];
+      const rows = config.rows || 7;
+      const cols = config.cols || 7;
       do {
-        newGrid = Array.from({ length: config.rows }, () =>
-          Array.from({ length: config.cols }, () => ({
+        newGrid = Array.from({ length: rows }, () =>
+          Array.from({ length: cols }, () => ({
             id: generateId(),
             color: config.colors[Math.floor(Math.random() * config.colors.length)],
           }))
@@ -88,6 +90,7 @@ export function useGameLogic() {
   }, []);
 
   const checkAllMatches = (grid: (Block | null)[][]) => {
+    if (!grid || grid.length === 0 || !grid[0]) return [];
     const matches: {r: number, c: number}[] = [];
     const rows = grid.length;
     const cols = grid[0].length;
@@ -194,6 +197,7 @@ export function useGameLogic() {
     scoreGain = matches.length * 20;
 
     const rows = newGrid.length;
+    if (rows === 0) return prevState;
     const cols = newGrid[0].length;
     const config = LEVELS.find(l => l.id === prevState.level) || LEVELS[0];
 
@@ -297,12 +301,13 @@ export function useGameLogic() {
 
   const applyBoosterEffect = (r: number, c: number) => {
     setState(prev => {
-      if (!prev || !prev.activeBooster) return null;
+      if (!prev || !prev.activeBooster) return prev;
       
       const newGrid = prev.grid.map(row => [...row]);
       let scoreGain = 0;
       let finalObjectives = [...prev.objectives];
       const rows = newGrid.length;
+      if (rows === 0) return prev;
       const cols = newGrid[0].length;
 
       if (prev.activeBooster === 'bomb' && prev.inventory.bombs > 0) {
@@ -376,6 +381,7 @@ export function useGameLogic() {
   const applyGravityAndRefill = (state: GameState, grid: (Block | null)[][]): GameState => {
     const newGrid = grid.map(row => [...row]);
     const rows = newGrid.length;
+    if (rows === 0) return state;
     const cols = newGrid[0].length;
     const config = LEVELS.find(l => l.id === state.level) || LEVELS[0];
 

@@ -12,9 +12,9 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        includeAssets: ['logo.svg'],
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          globPatterns: ['**/*.{js,css,html,svg,woff2}'],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -41,25 +41,17 @@ export default defineConfig(({mode}) => {
           ],
         },
         manifest: {
-          name: 'Block Blast Pro',
+          name: 'Block Blast Quest',
           short_name: 'BlockBlast',
           description: 'A polished block puzzle game with 100 levels',
           theme_color: '#0f172a',
+          background_color: '#0f172a',
+          display: 'standalone',
           icons: [
             {
-              src: 'pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
+              src: 'logo.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
               purpose: 'any maskable'
             }
           ]
