@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const { state, highestLevel, handleBlockClick, initLevel, useBooster, selectedBlock, clearGameState } = useGameLogic();
+  const { state, highestLevel, handleBlockClick, initLevel, useBooster, selectedBlock, clearGameState, persistentData } = useGameLogic();
   const [screen, setScreen] = useState<'menu' | 'level_select' | 'playing'>('menu');
 
   const handleGoToMenu = () => {
@@ -70,7 +70,7 @@ export default function App() {
               
               <div className="glass w-full py-4 rounded-2xl flex items-center justify-center gap-3 border-white/10 opacity-80">
                 <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-[10px] text-slate-900 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)]">C</div>
-                <span className="font-bold text-lg">{state?.coins || 100}</span>
+                <span className="font-bold text-lg">{state?.coins ?? persistentData.coins}</span>
               </div>
 
               <div className="flex items-center justify-center gap-1.5 text-white/40 text-[9px] font-bold uppercase tracking-widest">
@@ -103,7 +103,7 @@ export default function App() {
                 <h2 className="text-3xl font-black tracking-tight">LEVELS</h2>
                 <div className="flex items-center gap-2 bg-amber-400/20 px-4 py-2 rounded-xl border border-amber-400/20">
                    <div className="w-4 h-4 rounded-full bg-amber-400 flex items-center justify-center text-[8px] text-slate-900 font-bold">C</div>
-                   <span className="font-bold text-sm">{state?.coins || 100}</span>
+                   <span className="font-bold text-sm">{state?.coins ?? persistentData.coins}</span>
                 </div>
               </div>
             </div>
@@ -178,16 +178,16 @@ export default function App() {
 
             {/* Top Objectives Pill */}
             <div className="w-full flex justify-center px-4 shrink-0">
-              <div className="glass w-full max-w-[340px] rounded-[3rem] py-2 sm:py-3 px-8 flex flex-col items-center shadow-2xl border-white/20 relative">
-                <div className="flex justify-center gap-8 sm:gap-12 items-end">
+              <div className="glass w-full max-w-[300px] rounded-[2rem] py-1.5 sm:py-2 px-6 flex flex-col items-center shadow-2xl border-white/20 relative">
+                <div className="flex justify-center gap-6 sm:gap-10 items-center">
                   {state.objectives.map((obj, i) => (
-                    <div key={i} className="flex flex-col items-center gap-1 group">
-                      <motion.div 
+                    <div key={i} className="flex items-center gap-2 group">
+                      <motion.div
                         whileHover={{ scale: 1.1 }}
-                        className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.4)]" 
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.3)]" 
                         style={{ backgroundColor: obj.color ? COLOR_MAP[obj.color] : '#fff' }}
                       />
-                      <span className="text-lg sm:text-xl font-black text-white drop-shadow-lg">{Math.max(0, obj.target - obj.current)}</span>
+                      <span className="text-base sm:text-lg font-black text-white drop-shadow-lg">{Math.max(0, obj.target - obj.current)}</span>
                     </div>
                   ))}
                 </div>
@@ -353,21 +353,32 @@ export default function App() {
 }
 
 function BoosterButton({ icon, count, onClick, label, isActive }: { icon: React.ReactNode, count: number, onClick: () => void, label: string, isActive?: boolean }) {
+  const prices = { BOMB: 150, ROCKET: 100, SHUFFLE: 50 };
+  const price = prices[label as keyof typeof prices];
+
   return (
     <button 
       onClick={onClick}
       className={cn(
         "flex flex-col items-center gap-1 group relative transition-all active:scale-90 h-16 w-16 md:h-24 md:w-24 glass rounded-xl md:rounded-2xl flex flex-col items-center justify-center",
-        count <= 0 && "opacity-40 grayscale pointer-events-none",
+        count <= 0 && "opacity-80 border-amber-400/30",
         isActive && "bg-white/30 border-white ring-2 ring-white scale-110 shadow-[0_0_20px_rgba(255,255,255,0.4)]"
       )}
     >
-      <div className="text-xl md:text-3xl mb-0.5 md:mb-1 transform group-hover:scale-110 transition-transform">
+      <div className={cn(
+        "text-xl md:text-3xl mb-0.5 md:mb-1 transform group-hover:scale-110 transition-transform",
+        count <= 0 && "grayscale opacity-50"
+      )}>
         {icon}
       </div>
-      <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-80">{label}</span>
-      <div className="absolute -top-1 -right-1 md:-top-2 md:-right-2 w-5 h-5 md:w-6 md:h-6 bg-white text-black rounded-full text-[8px] md:text-[10px] font-black flex items-center justify-center shadow-lg border-2 border-slate-900">
-        {count}
+      <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-80">
+        {count <= 0 ? `BUY ${price}` : label}
+      </span>
+      <div className={cn(
+        "absolute -top-1 -right-1 md:-top-2 md:-right-2 w-5 h-5 md:w-6 md:h-6 rounded-full text-[8px] md:text-[10px] font-black flex items-center justify-center shadow-lg border-2 border-slate-900",
+        count > 0 ? "bg-white text-black" : "bg-amber-400 text-slate-900"
+      )}>
+        {count > 0 ? count : "C"}
       </div>
     </button>
   );

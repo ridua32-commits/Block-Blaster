@@ -142,6 +142,11 @@ export function useGameLogic() {
       return;
     }
 
+    if (selectedBlock?.r === r && selectedBlock?.c === c) {
+      setSelectedBlock(null);
+      return;
+    }
+
     if (!selectedBlock) {
       setSelectedBlock({ r, c });
       return;
@@ -256,20 +261,70 @@ export function useGameLogic() {
       };
     }
 
+    const hasMoves = checkPossibleMoves(newGrid);
+
     return {
       ...prevState,
       grid: newGrid,
       score: nextScore,
       moves: nextMoves,
-      isGameOver: nextMoves <= 0,
+      isGameOver: nextMoves <= 0 || (!hasMoves && prevState.inventory.bombs === 0 && prevState.inventory.rockets === 0 && prevState.inventory.colorChanges === 0),
       objectives: finalObjectives,
     };
+  };
+
+  const checkPossibleMoves = (grid: (Block | null)[][]) => {
+    const rows = grid.length;
+    if (rows === 0) return false;
+    const cols = grid[0].length;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Try horizontal swap
+        if (c < cols - 1) {
+          const tempGrid = grid.map(row => [...row]);
+          const temp = tempGrid[r][c];
+          tempGrid[r][c] = tempGrid[r][c+1];
+          tempGrid[r][c+1] = temp;
+          if (checkAllMatches(tempGrid).length > 0) return true;
+        }
+        // Try vertical swap
+        if (r < rows - 1) {
+          const tempGrid = grid.map(row => [...row]);
+          const temp = tempGrid[r][c];
+          tempGrid[r][c] = tempGrid[r+1][c];
+          tempGrid[r+1][c] = temp;
+          if (checkAllMatches(tempGrid).length > 0) return true;
+        }
+      }
+    }
+    return false;
   };
 
   const useBooster = (type: 'bomb' | 'rocket' | 'shuffle') => {
     setState(prev => {
       if (!prev) return null;
       
+      const prices = { bomb: 150, rocket: 100, shuffle: 50 };
+      const invKey = type === 'shuffle' ? 'colorChanges' : (type === 'bomb' ? 'bombs' : 'rockets');
+      const hasStock = prev.inventory[invKey] > 0;
+      
+      if (!hasStock) {
+        if (prev.coins >= prices[type]) {
+          const newCoins = prev.coins - prices[type];
+          const newInventory = { ...prev.inventory, [invKey]: prev.inventory[invKey] + 1 };
+          setPersistentData({ coins: newCoins, inventory: newInventory });
+          // If it's a targetable booster, activate it after buying. If shuffle, handled below.
+          if (type !== 'shuffle') {
+            return { ...prev, coins: newCoins, inventory: newInventory, activeBooster: type };
+          }
+          // For shuffle, we fall through to the logic below but with updated inventory
+          return { ...prev, coins: newCoins, inventory: newInventory };
+        } else {
+          return prev;
+        }
+      }
+
       // SHUFFLE is immediate
       if (type === 'shuffle' && prev.inventory.colorChanges > 0) {
         const newGrid = prev.grid.map(row => [...row]);
@@ -422,6 +477,7 @@ export function useGameLogic() {
     initLevel,
     useBooster,
     selectedBlock,
-    clearGameState
+    clearGameState,
+    persistentData
   };
 }
